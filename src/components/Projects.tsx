@@ -1,0 +1,181 @@
+"use client";
+
+import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
+import { projects, type Project } from "@/data/content";
+import { Reveal } from "./motion-primitives";
+
+/* Diameter of the hover spotlight blob, in px. */
+const SPOT = 380;
+
+function ArrowIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="square"
+      className={className}
+      aria-hidden
+    >
+      <path d="M7 17 17 7M9 7h8v8" />
+    </svg>
+  );
+}
+
+function ProjectCard({ project, index }: { project: Project; index: number }) {
+  const reduced = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
+
+  /* Pointer-tracked spotlight. Driven by transform rather than by
+     animating a radial-gradient's `at` position: moving the gradient
+     repaints the whole card every frame, whereas translating a
+     pre-rendered blob is a compositor-only operation. */
+  const mx = useMotionValue(-9999);
+  const my = useMotionValue(-9999);
+
+  return (
+    <motion.article
+      ref={ref}
+      layout
+      onPointerMove={(e) => {
+        if (reduced) return;
+        const r = ref.current?.getBoundingClientRect();
+        if (!r) return;
+        // Centre the 380px blob on the pointer.
+        mx.set(e.clientX - r.left - SPOT / 2);
+        my.set(e.clientY - r.top - SPOT / 2);
+      }}
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduced ? { opacity: 0 } : { opacity: 0, y: -12 }}
+      transition={{
+        duration: 0.5,
+        delay: reduced ? 0 : Math.min(index * 0.06, 0.3),
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className={`group relative flex flex-col justify-between overflow-hidden border border-ink-line bg-ink-soft transition-colors duration-300 hover:border-accent ${
+        project.featured ? "md:col-span-2" : ""
+      }`}
+    >
+      {/* Pointer spotlight — transform-only, composited */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-0 rounded-full opacity-0 blur-[70px] transition-opacity duration-300 will-change-transform group-hover:opacity-100"
+        style={{
+          x: mx,
+          y: my,
+          width: SPOT,
+          height: SPOT,
+          background: "rgba(37,99,235,0.30)",
+        }}
+      />
+
+      <div className="relative flex flex-1 flex-col justify-between p-8 md:p-10">
+        <div>
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <span className="type-label text-accent-bright">{project.category}</span>
+            <span className="type-label text-paper-dim">{project.year}</span>
+          </div>
+
+          <h3
+            className={`type-display mb-4 ${
+              project.featured ? "text-4xl md:text-6xl" : "text-3xl md:text-4xl"
+            }`}
+          >
+            {project.title}
+          </h3>
+
+          <p className="mb-8 max-w-lg leading-relaxed text-paper-dim">{project.blurb}</p>
+        </div>
+
+        <div>
+          <p className="type-label mb-6 text-paper">{project.metric}</p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {project.tags.map((tag) => (
+              <span
+                key={tag}
+                className="border border-ink-line px-3 py-1 font-mono text-xs text-paper-dim"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Stretched link: the whole card is one target, but the tags and
+          metric stay outside the anchor's accessible name. */}
+      <Link
+        href={`/work/${project.slug}`}
+        className="absolute inset-0 z-10"
+        aria-label={`${project.title} — read case study`}
+      />
+
+      <ArrowIcon className="absolute top-8 right-8 h-5 w-5 text-paper-dim opacity-0 transition-all duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:opacity-100 md:top-10 md:right-10" />
+    </motion.article>
+  );
+}
+
+export function Projects() {
+  const [active, setActive] = useState("All");
+
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(projects.map((p) => p.category)))],
+    []
+  );
+
+  const visible = useMemo(
+    () => (active === "All" ? projects : projects.filter((p) => p.category === active)),
+    [active]
+  );
+
+  return (
+    <section id="work" className="px-6 py-28 md:px-10 md:py-40">
+      <div className="mx-auto max-w-[1400px]">
+        <Reveal>
+          <div className="mb-14 flex flex-col justify-between gap-8 border-b border-ink-line pb-10 md:flex-row md:items-end">
+            <div>
+              <p className="type-label mb-5 text-accent-bright">01 — Selected Work</p>
+              <h2 className="type-display text-[clamp(2.5rem,7vw,6rem)]">
+                Things I&apos;ve
+                <br />
+                Worked On
+              </h2>
+            </div>
+
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter projects">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  role="tab"
+                  aria-selected={active === cat}
+                  onClick={() => setActive(cat)}
+                  className={`type-label cursor-pointer border px-4 py-2 transition-colors duration-200 ${
+                    active === cat
+                      ? "border-paper bg-paper text-ink"
+                      : "border-ink-line text-paper-dim hover:border-paper hover:text-paper"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+
+        <motion.div layout className="grid gap-5 md:grid-cols-2">
+          <AnimatePresence mode="popLayout">
+            {visible.map((project, i) => (
+              <ProjectCard key={project.slug} project={project} index={i} />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

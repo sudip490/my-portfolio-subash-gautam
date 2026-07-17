@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   Design tokens
+   Palette source: ui-ux-pro-max design-system generator
+   ("Monochrome + blue accent") inverted to a dark base for the
+   high-contrast direction.
+   --------------------------------------------------------------- */
+@theme {
+  --color-ink: #08080a;
+  --color-ink-soft: #101014;
+  --color-ink-line: #26262d;
+  --color-paper: #fafafa;
+  --color-paper-dim: #a1a1aa;
+  --color-accent: #2563eb;
+  --color-accent-bright: #4f83ff;
+
+  --font-display: var(--font-space-grotesk), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    /* Deliberately NO `scroll-behavior: smooth` here. Lenis drives
+       smooth scrolling in JS; native smooth scroll fights it on every
+       anchor click, producing a stutter as both try to own the same
+       scroll position. Visitors with reduced motion (Lenis disabled) get
+       an instant jump, which is the correct behaviour for them anyway.
+
+       Nav is fixed, so anchor targets still need padding. */
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-display);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-paper);
+  }
+
+  /* Class is applied by <Cursor /> only after it confirms a fine
+     pointer and no reduced-motion preference — so the native cursor
+     is never hidden without a replacement on screen. */
+  .has-custom-cursor,
+  .has-custom-cursor a,
+  .has-custom-cursor button,
+  .has-custom-cursor [role="tab"] {
+    cursor: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-bright);
+    outline-offset: 3px;
+  }
+}
+
+@layer utilities {
+  /* Oversized display type: uppercase, tight tracking, sub-1 leading. */
+  .type-display {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    line-height: 0.85;
+  }
+
+  .type-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+
+  /* Off-screen until focused, then pinned top-left. */
+  .skip-link {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    transform: translateY(-120%);
+    transition: transform 150ms ease;
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 1px var(--color-ink-line);
+    color: transparent;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, var(--color-ink-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-ink-line) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Resume
+   A different document with different rules. Space Grotesk and the
+   ink palette are the portfolio's voice; a resume has to survive a
+   parser, a printer and a ten-second skim, so it opts out of both.
+   --------------------------------------------------------------- */
+.resume {
+  /* Web-safe stack: this is the one page where personality in the
+     typeface costs more than it earns. */
+  font-family: Arial, Helvetica, "Liberation Sans", sans-serif;
+}
+
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
+  /* The body is near-black with near-white type. Printers drop
+     background colour but keep text colour, so without this the
+     resume prints white-on-white — i.e. blank. */
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .resume {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  /* Print the URL target rather than a live link nobody can click. */
+  .resume a {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+
+  /* The skip link hides itself with translateY(-120%) against the
+     viewport. Print has no viewport — fixed elements resolve against the
+     page box — so it stopped being off-screen and printed "SKIP TO
+     CONTENT" straight across the resume. */
+  .skip-link,
+  .no-print {
+    display: none !important;
+  }
+}
