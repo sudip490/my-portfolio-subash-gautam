@@ -1,48 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  siDocker,
-  siExpress,
-  siGit,
-  siKubernetes,
-  siLinux,
-  siModelcontextprotocol,
-  siMongodb,
-  siNeo4j,
-  siNextdotjs,
-  siNginx,
-  siNodedotjs,
-  siPostgresql,
-  siRabbitmq,
-  siReact,
-  siRedis,
-  siTypescript,
-} from "simple-icons";
 import { stack } from "@/data/content";
-
-/* Named imports only — the package carries ~3,400 icons and a dynamic
-   lookup would drag every one of them into the bundle. */
-type Icon = { path: string; title: string };
-const ICONS: Record<string, Icon> = {
-  docker: siDocker,
-  express: siExpress,
-  git: siGit,
-  kubernetes: siKubernetes,
-  linux: siLinux,
-  modelcontextprotocol: siModelcontextprotocol,
-  mongodb: siMongodb,
-  neo4j: siNeo4j,
-  nextdotjs: siNextdotjs,
-  nginx: siNginx,
-  nodedotjs: siNodedotjs,
-  postgresql: siPostgresql,
-  rabbitmq: siRabbitmq,
-  react: siReact,
-  redis: siRedis,
-  typescript: siTypescript,
-};
+import { ICONS } from "./stackIcons";
 
 /* A C: circle centre off to the right, cards riding the left of the ring.
    The centred card sits at the bulge and the rest curve back toward the
@@ -69,6 +30,9 @@ export function TechArc() {
   const reduced = useReducedMotion();
   const [active, setActive] = useState(START);
   const len = stack.length;
+  /* Unique per instance: the arc renders twice (pinned on desktop, in-flow
+     on mobile), so a hardcoded id would duplicate in the DOM. */
+  const headingId = useId();
 
   useEffect(() => {
     if (reduced) return;
@@ -77,8 +41,8 @@ export function TechArc() {
   }, [reduced, len]);
 
   return (
-    <div aria-labelledby="stack-heading" role="group" className="relative h-[34rem] w-[14rem]">
-      <h2 id="stack-heading" className="sr-only">
+    <div aria-labelledby={headingId} role="group" className="relative h-[34rem] w-[14rem]">
+      <h2 id={headingId} className="sr-only">
         Technology stack
       </h2>
 

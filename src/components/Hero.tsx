@@ -41,15 +41,21 @@ export function Hero({ ready = true }: { ready?: boolean }) {
 
       {/* Tall and narrow, so it rides the right edge rather than sitting in
           the corner. Absolutely placed rather than gridded beside the copy:
-          giving it a column squeezed the intro to two words a line. */}
+          giving it a column squeezed the intro to two words a line.
+
+          Shown at every width now, always pinned to the right beside the
+          headline — the same composition as desktop. It just scales down on
+          narrower screens (origin top-right) so it tucks into the space to
+          the right of the headline instead of covering it. pointer-events are
+          off below lg so the shrunk arc never swallows taps meant for the
+          copy; the tap-to-select interaction stays on desktop where it fits.
+          top-28 matches the section's pt-28 so the arc starts on the
+          availability line rather than floating below it. */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={ready ? { opacity: 1 } : { opacity: 0 }}
         transition={{ delay: 0.3, duration: 0.8 }}
-        /* top-28 matches the section's pt-28, so the arc starts on the same
-           line as the availability row rather than centring itself in the
-           hero and floating well below it. */
-        className="absolute top-28 right-10 hidden lg:block"
+        className="pointer-events-none absolute top-24 right-1 origin-top-right scale-[0.5] sm:top-28 sm:right-4 sm:scale-[0.72] md:right-6 md:scale-[0.85] lg:right-10 lg:scale-100 lg:pointer-events-auto"
       >
         <TechArc />
       </motion.div>
@@ -84,7 +90,12 @@ export function Hero({ ready = true }: { ready?: boolean }) {
           lineClassName="[&:nth-child(2)]:text-accent-bright"
         />
 
-        <div className="mt-20 grid gap-12 border-t border-ink-line pt-10 md:grid-cols-[1fr_auto] md:gap-20">
+        {/* Two columns only from lg up: below that the stats sit their own
+            full-width row under the intro. At md the auto-width stats column
+            grabbed max-content — all three in a row — which crushed the intro
+            to two words a line and wrapped the third stat onto an orphan row
+            that read as missing on phones. */}
+        <div className="mt-20 grid gap-12 border-t border-ink-line pt-10 lg:grid-cols-[1fr_auto] lg:gap-20">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -98,7 +109,10 @@ export function Hero({ ready = true }: { ready?: boolean }) {
             initial={{ opacity: 0, y: 20 }}
             animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ delay: 1.05, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-wrap gap-8 md:gap-10"
+            /* Explicit grid, not flex-wrap: three fixed columns can never
+               orphan the third stat. Stacked on phones so the long labels
+               stay legible, three-up once there's room. */
+            className="grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-10"
           >
             {hero.stats.map((stat) => (
               <div key={stat.label}>
