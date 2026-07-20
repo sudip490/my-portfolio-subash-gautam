@@ -194,13 +194,9 @@ export function ProjectVisual({ category, slug }: { category: string; slug: stri
   return (
     <div
       aria-hidden
-      /* Faded out toward the text so the copy never fights it; brightens a
-         step on card hover along with the spotlight. */
-      className="pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] opacity-50 transition-opacity duration-300 group-hover:opacity-90 md:block"
-      style={{
-        maskImage: "linear-gradient(to right, transparent, black 38%)",
-        WebkitMaskImage: "linear-gradient(to right, transparent, black 38%)",
-      }}
+      /* Fills its container as a backdrop behind a ProjectScreen mockup;
+         brightens a step on card hover along with the spotlight. */
+      className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-70"
     >
       {art}
     </div>

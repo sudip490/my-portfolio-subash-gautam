@@ -113,12 +113,16 @@ export type Project = {
   metric: string;
   href?: string;
   featured?: boolean;
+  /* Which frame the card's screen mockup renders in — the device the
+     product actually ships on. Drives ProjectScreen placement. */
+  device: "phone" | "browser";
   study: CaseStudy;
 };
 
 export const projects: Project[] = [
   {
     slug: "capital-market",
+    device: "phone",
     title: "Capital Market",
     blurb:
       "Capital-market module embedded in IME Pay, Khalti, and the Global IME Bank app — live stock data, real-time profit and loss, and large-scale portfolio analytics.",
@@ -153,6 +157,7 @@ export const projects: Project[] = [
   },
   {
     slug: "brish-terminal",
+    device: "browser",
     title: "Brish Terminal",
     blurb:
       "NEPSE portfolio analytics terminal — real-time floorsheet, whale-trade alerts, portfolio replay against the index, and a live block-trade radar.",
@@ -189,6 +194,7 @@ export const projects: Project[] = [
   },
   {
     slug: "global-smart-plus",
+    device: "phone",
     title: "Global Smart Plus",
     blurb:
       "Secure omni-channel banking platform delivering seamless web and mobile banking, built on microservices with gRPC.",
@@ -221,6 +227,7 @@ export const projects: Project[] = [
   },
   {
     slug: "global-biznex",
+    device: "browser",
     title: "Global Biznex",
     blurb:
       "Corporate internet banking platform offering fund transfers, bulk payments, and granular access control for business customers.",
@@ -253,6 +260,7 @@ export const projects: Project[] = [
   },
   {
     slug: "global-junior",
+    device: "phone",
     title: "Global Junior",
     blurb:
       "Secure child banking app with parental controls, tasks, savings, and smart spending — built on the same microservices core.",
@@ -284,6 +292,7 @@ export const projects: Project[] = [
   },
   {
     slug: "sani-securities",
+    device: "browser",
     title: "Sani Securities",
     blurb:
       "Backend services for a NEPSE-licensed brokerage platform, enabling real-time trading, portfolio insights, and secure user transactions.",
@@ -315,6 +324,7 @@ export const projects: Project[] = [
   },
   {
     slug: "gold-silver",
+    device: "browser",
     title: "Gold & Silver",
     blurb:
       "Real-time precious-metals tracker covering Nepal and 13 international markets, with historical charts, price alerts, and official NRB exchange rates.",
@@ -356,6 +366,7 @@ export const projects: Project[] = [
   },
   {
     slug: "k-cha-news",
+    device: "phone",
     title: "K Cha News",
     blurb:
       "React Native news reader aggregating 35+ Nepali newsrooms, bilingual in English and नेपाली, with offline-tolerant caching.",

@@ -10,6 +10,8 @@ import { Grain } from "./Grain";
 import { SmoothScroll } from "./SmoothScroll";
 import { Magnetic } from "./Magnetic";
 import { site } from "@/data/content";
+import { ProjectScreen } from "./ProjectScreen";
+import { ProjectVisual } from "./ProjectVisual";
 
 export function CaseStudyBody({ project, next }: { project: Project; next: Project }) {
   const { study } = project;
@@ -67,6 +69,21 @@ export function CaseStudyBody({ project, next }: { project: Project; next: Proje
                 </div>
               ))}
             </dl>
+
+            {/* The product itself — same screen the card shows, full size. */}
+            <Reveal delay={0.1}>
+              <div className="group relative mt-16 overflow-hidden border border-ink-line bg-ink-soft/60">
+                <ProjectVisual category={project.category} slug={project.slug} />
+                <ProjectScreen
+                  slug={project.slug}
+                  className={
+                    project.device === "phone"
+                      ? "relative mx-auto my-10 w-60 md:my-16 md:w-72"
+                      : "relative mx-auto my-10 w-full max-w-3xl px-6 md:my-16"
+                  }
+                />
+              </div>
+            </Reveal>
           </div>
         </section>
 

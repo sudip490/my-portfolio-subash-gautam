@@ -6,6 +6,22 @@ import { AnimatePresence, motion, useMotionValue, useReducedMotion } from "motio
 import { projects, type Project } from "@/data/content";
 import { Reveal } from "./motion-primitives";
 import { ProjectVisual } from "./ProjectVisual";
+import { ProjectScreen } from "./ProjectScreen";
+
+/* Screen placement inside the media area, by card shape × device. Phones
+   hang centred and crop at the bottom edge; browsers pin near the top
+   (or centre vertically in a featured side column) and bleed below.
+   Every variant un-tilts a couple of degrees on hover. */
+const SCREEN_POS = {
+  featuredPhone:
+    "absolute top-6 left-1/2 w-56 -translate-x-1/2 rotate-[2deg] transition-transform duration-500 group-hover:rotate-0 md:top-10 md:w-60",
+  featuredBrowser:
+    "absolute inset-x-6 top-8 rotate-[-1.5deg] transition-transform duration-500 group-hover:rotate-0 sm:inset-x-10 md:top-1/2 md:-translate-y-1/2",
+  phone:
+    "absolute top-6 left-1/2 w-56 -translate-x-1/2 rotate-[2deg] transition-transform duration-500 group-hover:rotate-0",
+  browser:
+    "absolute inset-x-6 top-6 rotate-[-1.5deg] transition-transform duration-500 group-hover:rotate-0 sm:inset-x-10 sm:top-8",
+} as const;
 
 /* Diameter of the hover spotlight blob, in px. */
 const SPOT = 380;
@@ -57,7 +73,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         delay: reduced ? 0 : Math.min(index * 0.06, 0.3),
         ease: [0.16, 1, 0.3, 1],
       }}
-      className={`group relative flex flex-col justify-between overflow-hidden border border-ink-line bg-ink-soft transition-colors duration-300 hover:border-accent ${
+      className={`group relative flex flex-col overflow-hidden border border-ink-line bg-ink-soft transition-colors duration-300 hover:border-accent ${
         project.featured ? "md:col-span-2" : ""
       }`}
     >
@@ -74,40 +90,62 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         }}
       />
 
-      {/* Featured cards span two columns and the copy holds the left half —
-          the artwork earns the other half its keep. */}
-      {project.featured && <ProjectVisual category={project.category} slug={project.slug} />}
-
-      <div className="relative flex flex-1 flex-col justify-between p-8 md:p-10">
-        <div>
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <span className="type-label text-accent-bright">{project.category}</span>
-            <span className="type-label text-paper-dim">{project.year}</span>
-          </div>
-
-          <h3
-            className={`type-display mb-4 ${
-              project.featured ? "text-4xl md:text-6xl" : "text-3xl md:text-4xl"
-            }`}
-          >
-            {project.title}
-          </h3>
-
-          <p className="mb-8 max-w-lg leading-relaxed text-paper-dim">{project.blurb}</p>
+      {/* Media first in the DOM so phones read image-then-text; on wide
+          featured cards it becomes the right column instead. */}
+      <div className={project.featured ? "flex-1 md:grid md:grid-cols-2" : "flex flex-1 flex-col"}>
+        <div
+          className={`relative overflow-hidden border-b border-ink-line bg-ink ${
+            project.featured
+              ? "aspect-[16/10] sm:aspect-[16/8] md:order-2 md:aspect-auto md:border-b-0 md:border-l"
+              : "aspect-[16/10]"
+          }`}
+        >
+          <ProjectVisual category={project.category} slug={project.slug} />
+          <ProjectScreen
+            slug={project.slug}
+            className={
+              SCREEN_POS[
+                project.featured
+                  ? project.device === "phone"
+                    ? "featuredPhone"
+                    : "featuredBrowser"
+                  : project.device
+              ]
+            }
+          />
         </div>
 
-        <div>
-          <p className="type-label mb-6 text-paper">{project.metric}</p>
+        <div className="relative flex flex-1 flex-col justify-between p-8 md:order-1 md:p-10">
+          <div>
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <span className="type-label text-accent-bright">{project.category}</span>
+              <span className="type-label text-paper-dim">{project.year}</span>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className="border border-ink-line px-3 py-1 font-mono text-xs text-paper-dim"
-              >
-                {tag}
-              </span>
-            ))}
+            <h3
+              className={`type-display mb-4 ${
+                project.featured ? "text-4xl md:text-6xl" : "text-3xl md:text-4xl"
+              }`}
+            >
+              {project.title}
+            </h3>
+
+            <p className="mb-8 max-w-lg leading-relaxed text-paper-dim">{project.blurb}</p>
+          </div>
+
+          <div>
+            <p className="type-label mb-6 text-paper">{project.metric}</p>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {project.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="border border-ink-line px-3 py-1 font-mono text-xs text-paper-dim"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
