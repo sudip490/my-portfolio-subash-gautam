@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
 import { projects, type Project } from "@/data/content";
 import { Reveal } from "./motion-primitives";
+import { ProjectVisual } from "./ProjectVisual";
 
 /* Diameter of the hover spotlight blob, in px. */
 const SPOT = 380;
@@ -72,6 +73,10 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           background: "rgba(37,99,235,0.30)",
         }}
       />
+
+      {/* Featured cards span two columns and the copy holds the left half —
+          the artwork earns the other half its keep. */}
+      {project.featured && <ProjectVisual category={project.category} slug={project.slug} />}
 
       <div className="relative flex flex-1 flex-col justify-between p-8 md:p-10">
         <div>

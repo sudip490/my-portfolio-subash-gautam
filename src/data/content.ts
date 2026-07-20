@@ -43,6 +43,20 @@ export const hero = {
   ],
 };
 
+/* The proof strip between the hero and the work — where the work actually
+   runs, ticker-style. Short claims only: it scrolls, so anything long
+   turns into a paragraph on a conveyor belt. */
+export const ticker = [
+  "Live in IME Pay",
+  "Live in Khalti",
+  "Live in Global IME Bank",
+  "Real-time NEPSE data",
+  "4+ years shipping backends",
+  "gRPC microservices",
+  "3 packages on npm",
+  "Kathmandu, Nepal",
+];
+
 export type StackItem = {
   name: string;
   /* simple-icons key, minus the `si` prefix and lowercased. Null where the

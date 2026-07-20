@@ -7,6 +7,7 @@ import { Grain } from "./Grain";
 import { SmoothScroll } from "./SmoothScroll";
 import { Nav } from "./Nav";
 import { Hero } from "./Hero";
+import { Ticker } from "./Ticker";
 import { Projects } from "./Projects";
 import { About } from "./About";
 import { Experience } from "./Experience";
@@ -29,6 +30,7 @@ export function Shell() {
       <Nav ready={ready} />
       <main id="main">
         <Hero ready={ready} />
+        <Ticker />
         <Projects />
         <About />
         <Experience />

@@ -98,6 +98,14 @@
     color: transparent;
   }
 
+  /* Ticker track: two identical copies side by side, so -50% lands the
+     second copy exactly where the first began — a seamless loop. */
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   .bg-grid {
     background-image:
       linear-gradient(to right, var(--color-ink-line) 1px, transparent 1px),
