@@ -98,12 +98,21 @@
     color: transparent;
   }
 
-  /* Ticker track: two identical copies side by side, so -50% lands the
-     second copy exactly where the first began — a seamless loop. */
-  @keyframes marquee {
-    to {
-      transform: translateX(-50%);
+  /* Hero scroll cue: a short accent dash sweeping down a hairline track.
+     Starts above the track (hidden) and exits below it, with a beat of
+     rest between passes. The global reduced-motion rule parks it. */
+  @keyframes scroll-cue {
+    0% {
+      transform: translateY(-110%);
     }
+    70%,
+    100% {
+      transform: translateY(220%);
+    }
+  }
+
+  .animate-scroll-cue {
+    animation: scroll-cue 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
   }
 
   .bg-grid {

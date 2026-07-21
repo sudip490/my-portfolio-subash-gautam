@@ -5,9 +5,11 @@ import {
   useReducedMotion,
   useScroll,
   useSpring,
+  useTransform,
+  type MotionValue,
   type Variants,
 } from "motion/react";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 /* Reveal-on-scroll wrapper. Collapses to a plain fade when the
    visitor has prefers-reduced-motion set. */
@@ -86,6 +88,123 @@ export function MaskedLines({
         </span>
       ))}
     </motion.h1>
+  );
+}
+
+/* MaskedLines' scroll-triggered sibling: the same per-line mask reveal,
+   but fired by the section entering the viewport instead of the intro
+   sequence. Renders an h2 — this is for section headings. Lines are
+   ReactNode so a line can carry its own effect (see Contact). */
+export function MaskedHeading({
+  lines,
+  className,
+  lineClassName,
+}: {
+  lines: ReactNode[];
+  className?: string;
+  lineClassName?: string;
+}) {
+  const reduced = useReducedMotion();
+
+  const container: Variants = {
+    hidden: {},
+    show: { transition: { staggerChildren: reduced ? 0 : 0.09 } },
+  };
+
+  const line: Variants = {
+    hidden: reduced ? { opacity: 0 } : { y: "110%" },
+    show: {
+      y: "0%",
+      opacity: 1,
+      transition: { duration: reduced ? 0.2 : 0.9, ease: [0.16, 1, 0.3, 1] },
+    },
+  };
+
+  return (
+    <motion.h2
+      className={className}
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+    >
+      {lines.map((text, i) => (
+        <span key={i} className="block overflow-hidden pb-[0.06em]">
+          <motion.span className={`block ${lineClassName ?? ""}`} variants={line}>
+            {text}
+          </motion.span>
+        </span>
+      ))}
+    </motion.h2>
+  );
+}
+
+/* One word of a ScrollFillWords heading. Split out so the per-word
+   useTransform runs in a component whose count never changes. */
+function FillWord({
+  progress,
+  index,
+  total,
+  children,
+}: {
+  progress: MotionValue<number>;
+  index: number;
+  total: number;
+  children: string;
+}) {
+  const start = index / total;
+  /* Colour, not opacity: dim words must stay legible — this is the
+     heading, not decoration. Ink-line grey up to paper. */
+  const color = useTransform(progress, [start, start + 1 / total], ["#3d3d46", "#fafafa"]);
+
+  return (
+    <motion.span style={{ color }}>
+      {children}{" "}
+    </motion.span>
+  );
+}
+
+/* Scroll-linked heading fill: words brighten one by one as the heading
+   rides up the viewport, so reading pace and scroll pace line up. */
+export function ScrollFillWords({ text, className }: { text: string; className?: string }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const reduced = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    /* Fill starts as the heading clears the fold and completes while
+       it's still comfortably readable — never half-lit at rest. */
+    offset: ["start 0.92", "start 0.4"],
+  });
+
+  if (reduced) return <h2 className={className}>{text}</h2>;
+
+  const words = text.split(" ");
+
+  return (
+    <h2 ref={ref} className={className}>
+      {words.map((word, i) => (
+        <FillWord key={`${word}-${i}`} progress={scrollYProgress} index={i} total={words.length}>
+          {word}
+        </FillWord>
+      ))}
+    </h2>
+  );
+}
+
+/* Hairline that draws itself left-to-right on entering the viewport.
+   Stands in for static border-b on section headers. */
+export function DrawnRule({ className, delay = 0 }: { className?: string; delay?: number }) {
+  const reduced = useReducedMotion();
+
+  return (
+    <motion.div
+      aria-hidden
+      className={`h-px w-full origin-left bg-ink-line ${className ?? ""}`}
+      initial={reduced ? { opacity: 0 } : { scaleX: 0 }}
+      whileInView={reduced ? { opacity: 1 } : { scaleX: 1 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: reduced ? 0.2 : 1.1, delay, ease: [0.16, 1, 0.3, 1] }}
+    />
   );
 }
 

@@ -16,12 +16,36 @@ const links = [
 export function Nav({ ready = true }: { ready?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* Which section owns the viewport middle. "top" and "background" have
+     no nav link, so landing on them simply clears the indicator — which
+     is the honest state. */
+  useEffect(() => {
+    const ids = ["top", "work", "about", "experience", "background", "open-source", "contact"];
+    const els = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (els.length === 0) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        }
+      },
+      // A thin band around the viewport's vertical middle.
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
 
   // Escape closes the mobile menu — expected of any disclosure widget.
@@ -72,16 +96,41 @@ export function Nav({ ready = true }: { ready?: boolean }) {
         </a>
 
         <ul className="hidden items-center gap-8 md:flex">
-          {links.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                className="type-label cursor-pointer text-paper-dim transition-colors duration-200 hover:text-paper"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
+          {links.map((link) => {
+            const isActive = active === link.href.slice(1);
+            return (
+              <li key={link.href}>
+                {/* Roll-over label: the resting copy slides up and out while
+                    a brighter twin slides in from below, both clipped by the
+                    anchor. Pure CSS, so it costs nothing when idle. */}
+                <a
+                  href={link.href}
+                  className={`type-label group relative block cursor-pointer overflow-hidden py-1 transition-colors duration-200 ${
+                    isActive ? "text-paper" : "text-paper-dim"
+                  }`}
+                >
+                  <span className="block transition-transform duration-300 ease-out-expo group-hover:-translate-y-full">
+                    {link.label}
+                  </span>
+                  <span
+                    aria-hidden
+                    className="absolute inset-x-0 top-full block text-paper transition-transform duration-300 ease-out-expo group-hover:-translate-y-full"
+                  >
+                    {link.label}
+                  </span>
+                  {/* Shared layoutId makes the underline glide between links
+                      as the visitor scrolls from section to section. */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-active"
+                      className="absolute inset-x-0 bottom-0 h-px bg-accent-bright"
+                      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    />
+                  )}
+                </a>
+              </li>
+            );
+          })}
           {/* Only rendered once a resume actually exists in /public. */}
           {site.resumeUrl && (
             <li>

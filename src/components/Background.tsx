@@ -1,7 +1,7 @@
 "use client";
 
 import { education, volunteering, interests, type Credential } from "@/data/content";
-import { Reveal } from "./motion-primitives";
+import { DrawnRule, MaskedHeading, Reveal } from "./motion-primitives";
 
 function Entry({ item }: { item: Credential }) {
   return (
@@ -20,12 +20,18 @@ export function Background() {
   return (
     <section id="background" className="px-6 py-28 md:px-10 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <Reveal>
-          <div className="mb-16 border-b border-ink-line pb-10">
-            <p className="type-label mb-5 text-accent-bright">04 — Background</p>
-            <h2 className="type-display text-[clamp(2.5rem,7vw,6rem)]">Off The Clock</h2>
+        <div className="mb-16">
+          <div className="pb-10">
+            <Reveal>
+              <p className="type-label mb-5 text-accent-bright">04 — Background</p>
+            </Reveal>
+            <MaskedHeading
+              lines={["Off The Clock"]}
+              className="type-display text-[clamp(2.5rem,7vw,6rem)]"
+            />
           </div>
-        </Reveal>
+          <DrawnRule />
+        </div>
 
         <div className="grid gap-16 md:grid-cols-2 md:gap-24">
           <div>

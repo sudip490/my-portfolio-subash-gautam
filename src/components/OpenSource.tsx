@@ -1,18 +1,24 @@
 "use client";
 
 import { packages } from "@/data/content";
-import { Reveal } from "./motion-primitives";
+import { DrawnRule, MaskedHeading, Reveal } from "./motion-primitives";
 
 export function OpenSource() {
   return (
     <section id="open-source" className="px-6 py-28 md:px-10 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <Reveal>
-          <div className="mb-16 border-b border-ink-line pb-10">
-            <p className="type-label mb-5 text-accent-bright">05 — Open Source</p>
-            <h2 className="type-display text-[clamp(2.5rem,7vw,6rem)]">On npm</h2>
+        <div className="mb-16">
+          <div className="pb-10">
+            <Reveal>
+              <p className="type-label mb-5 text-accent-bright">05 — Open Source</p>
+            </Reveal>
+            <MaskedHeading
+              lines={["On npm"]}
+              className="type-display text-[clamp(2.5rem,7vw,6rem)]"
+            />
           </div>
-        </Reveal>
+          <DrawnRule />
+        </div>
 
         <ul>
           {packages.map((pkg, i) => (

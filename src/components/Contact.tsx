@@ -1,10 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { site, contact } from "@/data/content";
-import { Reveal } from "./motion-primitives";
+import { MaskedHeading, Reveal } from "./motion-primitives";
 import { Magnetic } from "./Magnetic";
+
+/* Outlined type that fills solid left-to-right as it scrolls up the
+   viewport — the sentence completes itself on the way in. The filled
+   copy sits on top of the stroked one behind a clip-path window driven
+   by scroll progress; negative vertical insets keep tight display
+   line-height from shaving the glyphs. */
+function StrokeFill({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const reduced = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 0.95", "start 0.45"],
+  });
+  const clipPath = useTransform(
+    scrollYProgress,
+    (v) => `inset(-0.15em ${(1 - v) * 100}% -0.15em 0)`
+  );
+
+  if (reduced) return <span className="text-stroke">{text}</span>;
+
+  return (
+    <span ref={ref} className="relative inline-block">
+      <span className="text-stroke">{text}</span>
+      <motion.span aria-hidden style={{ clipPath }} className="absolute inset-0 text-paper">
+        {text}
+      </motion.span>
+    </span>
+  );
+}
 
 /* Local time in Kathmandu, mounted client-side only: the server renders
    the placeholder, so hydration never compares two different clocks. */
@@ -54,13 +83,10 @@ export function Contact() {
           <p className="type-label mb-5 text-accent-bright">06 — Contact</p>
         </Reveal>
 
-        <Reveal delay={0.05}>
-          <h2 className="type-display mb-10 text-[clamp(2.5rem,9vw,8rem)]">
-            Let&apos;s Work
-            <br />
-            <span className="text-stroke">Together</span>
-          </h2>
-        </Reveal>
+        <MaskedHeading
+          lines={["Let's Work", <StrokeFill key="together" text="Together" />]}
+          className="type-display mb-10 text-[clamp(2.5rem,9vw,8rem)]"
+        />
 
         {/* Pitch and email on the left, the places I already live on the
             right — the column the section never had. */}

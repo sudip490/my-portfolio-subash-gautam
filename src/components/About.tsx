@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { about, site, skills } from "@/data/content";
-import { Reveal } from "./motion-primitives";
+import { Reveal, ScrollFillWords } from "./motion-primitives";
 
 export function About() {
   return (
@@ -19,11 +19,12 @@ export function About() {
 
         <div className="grid gap-16 md:grid-cols-[1.2fr_1fr] md:gap-24">
           <div>
-            <Reveal>
-              <h2 className="type-display mb-12 text-[clamp(2rem,4.5vw,3.75rem)] tracking-tight">
-                {about.heading}
-              </h2>
-            </Reveal>
+            {/* Words light up with scroll position — the heading reads
+                itself to you at the pace you scroll. */}
+            <ScrollFillWords
+              text={about.heading}
+              className="type-display mb-12 text-[clamp(2rem,4.5vw,3.75rem)] tracking-tight"
+            />
 
             <div className="mb-12 flex flex-col gap-8 sm:flex-row sm:items-start">
               <Reveal>

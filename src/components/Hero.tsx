@@ -20,6 +20,9 @@ export function Hero({ ready = true }: { ready?: boolean }) {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", reduced ? "0%" : "22%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, reduced ? 1 : 0]);
 
+  // The cue is an invitation to scroll — first movement should retire it.
+  const cueOpacity = useTransform(scrollYProgress, [0, 0.15], [1, reduced ? 1 : 0]);
+
   return (
     <section
       id="top"
@@ -124,6 +127,23 @@ export function Hero({ ready = true }: { ready?: boolean }) {
             ))}
           </motion.dl>
         </div>
+      </motion.div>
+
+      {/* Scroll cue, desktop only — on phones the stats already run past
+          the fold, so the page explains itself. Entrance waits for the
+          intro like everything else; scroll fades it via cueOpacity. */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={ready ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ delay: 1.6, duration: 0.8 }}
+        className="absolute bottom-8 left-6 hidden md:left-10 md:block"
+      >
+        <motion.div style={{ opacity: cueOpacity }} className="flex items-center gap-4">
+          <span className="relative block h-10 w-px overflow-hidden bg-ink-line">
+            <span className="animate-scroll-cue absolute inset-x-0 top-0 h-1/2 bg-accent-bright" />
+          </span>
+          <span className="type-label text-paper-dim">Scroll</span>
+        </motion.div>
       </motion.div>
     </section>
   );

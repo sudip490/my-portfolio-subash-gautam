@@ -1,18 +1,24 @@
 "use client";
 
 import { experience } from "@/data/content";
-import { Reveal } from "./motion-primitives";
+import { DrawnRule, MaskedHeading, Reveal } from "./motion-primitives";
 
 export function Experience() {
   return (
     <section id="experience" className="px-6 py-28 md:px-10 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <Reveal>
-          <div className="mb-16 border-b border-ink-line pb-10">
-            <p className="type-label mb-5 text-accent-bright">03 — Experience</p>
-            <h2 className="type-display text-[clamp(2.5rem,7vw,6rem)]">Where I&apos;ve Worked</h2>
+        <div className="mb-16">
+          <div className="pb-10">
+            <Reveal>
+              <p className="type-label mb-5 text-accent-bright">03 — Experience</p>
+            </Reveal>
+            <MaskedHeading
+              lines={["Where I've Worked"]}
+              className="type-display text-[clamp(2.5rem,7vw,6rem)]"
+            />
           </div>
-        </Reveal>
+          <DrawnRule />
+        </div>
 
         <ol>
           {experience.map((role, i) => (

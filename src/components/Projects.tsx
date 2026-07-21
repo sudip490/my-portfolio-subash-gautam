@@ -2,9 +2,15 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+} from "motion/react";
 import { projects, type Project } from "@/data/content";
-import { Reveal } from "./motion-primitives";
+import { DrawnRule, MaskedHeading, Reveal } from "./motion-primitives";
 import { ProjectVisual } from "./ProjectVisual";
 import { ProjectScreen } from "./ProjectScreen";
 
@@ -53,10 +59,17 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   const mx = useMotionValue(-9999);
   const my = useMotionValue(-9999);
 
+  /* Pointer-tracked tilt — a couple of degrees, spring-damped, mouse
+     only. Enough to make the card feel physical without shearing the
+     type. Springs so leave snaps back with a little life. */
+  const rx = useSpring(0, { stiffness: 120, damping: 16, mass: 0.6 });
+  const ry = useSpring(0, { stiffness: 120, damping: 16, mass: 0.6 });
+
   return (
     <motion.article
       ref={ref}
       layout
+      style={{ rotateX: rx, rotateY: ry, transformPerspective: 1200 }}
       onPointerMove={(e) => {
         if (reduced) return;
         const r = ref.current?.getBoundingClientRect();
@@ -64,6 +77,17 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         // Centre the 380px blob on the pointer.
         mx.set(e.clientX - r.left - SPOT / 2);
         my.set(e.clientY - r.top - SPOT / 2);
+        // Tilt toward the pointer. Touch drags scroll — never tilt there.
+        if (e.pointerType === "mouse") {
+          const px = (e.clientX - r.left) / r.width - 0.5;
+          const py = (e.clientY - r.top) / r.height - 0.5;
+          rx.set(-py * 3.5);
+          ry.set(px * 3.5);
+        }
+      }}
+      onPointerLeave={() => {
+        rx.set(0);
+        ry.set(0);
       }}
       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
@@ -154,6 +178,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           metric stay outside the anchor's accessible name. */}
       <Link
         href={`/work/${project.slug}`}
+        data-cursor="View"
         className="absolute inset-0 z-10"
         aria-label={`${project.title} — read case study`}
       />
@@ -179,37 +204,41 @@ export function Projects() {
   return (
     <section id="work" className="px-6 py-28 md:px-10 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <Reveal>
-          <div className="mb-14 flex flex-col justify-between gap-8 border-b border-ink-line pb-10 md:flex-row md:items-end">
+        <div className="mb-14">
+          <div className="flex flex-col justify-between gap-8 pb-10 md:flex-row md:items-end">
             <div>
-              <p className="type-label mb-5 text-accent-bright">01 — Selected Work</p>
-              <h2 className="type-display text-[clamp(2.5rem,7vw,6rem)]">
-                Things I&apos;ve
-                <br />
-                Worked On
-              </h2>
+              <Reveal>
+                <p className="type-label mb-5 text-accent-bright">01 — Selected Work</p>
+              </Reveal>
+              <MaskedHeading
+                lines={["Things I've", "Worked On"]}
+                className="type-display text-[clamp(2.5rem,7vw,6rem)]"
+              />
             </div>
 
-            <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter projects">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  role="tab"
-                  aria-selected={active === cat}
-                  onClick={() => setActive(cat)}
-                  className={`type-label cursor-pointer border px-4 py-2 transition-colors duration-200 ${
-                    active === cat
-                      ? "border-paper bg-paper text-ink"
-                      : "border-ink-line text-paper-dim hover:border-paper hover:text-paper"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+            <Reveal delay={0.15}>
+              <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter projects">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    role="tab"
+                    aria-selected={active === cat}
+                    onClick={() => setActive(cat)}
+                    className={`type-label cursor-pointer border px-4 py-2 transition-colors duration-200 ${
+                      active === cat
+                        ? "border-paper bg-paper text-ink"
+                        : "border-ink-line text-paper-dim hover:border-paper hover:text-paper"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </Reveal>
           </div>
-        </Reveal>
+          <DrawnRule />
+        </div>
 
         <motion.div layout className="grid gap-5 md:grid-cols-2">
           <AnimatePresence mode="popLayout">
