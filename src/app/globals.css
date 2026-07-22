@@ -285,6 +285,27 @@
     animation: screen-sheen 5.5s ease-in-out infinite;
   }
 
+  /* Gold & Silver's real full-page screenshot, shown through a fixed
+     viewport and slowly panned — like someone scrolling the live site.
+     The calc pins the far end of the pan to the image's bottom; keep
+     16rem in sync with the h-64 viewport in GoldSilverScreen. */
+  @keyframes screen-pan {
+    0%,
+    10% {
+      transform: translateY(0);
+    }
+    58%,
+    72% {
+      transform: translateY(calc(-100% + 16rem));
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  .animate-screen-pan {
+    animation: screen-pan 18s ease-in-out infinite;
+  }
+
   /* Global Junior's open task ticking itself off, then resetting.
      Emerald literals are the mockups' diegetic UI colors, not tokens. */
   @keyframes junior-tick {

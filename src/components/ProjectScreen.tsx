@@ -426,7 +426,17 @@ function GoldSilverScreen() {
           goldsilver-brown.vercel.app
         </span>
       </div>
-      <Image src={goldSilverShot} alt="" placeholder="blur" className="block w-full" sizes="(min-width: 768px) 40rem, 100vw" />
+      {/* Fixed viewport (sync with screen-pan's 16rem) so the tall
+          capture doesn't swallow the whole card and hide the backdrop. */}
+      <div className="h-64 overflow-hidden">
+        <Image
+          src={goldSilverShot}
+          alt=""
+          placeholder="blur"
+          className="animate-screen-pan block w-full"
+          sizes="(min-width: 768px) 40rem, 100vw"
+        />
+      </div>
     </div>
   );
 }
