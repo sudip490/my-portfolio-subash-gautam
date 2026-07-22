@@ -12,6 +12,8 @@ import { Magnetic } from "./Magnetic";
 import { site } from "@/data/content";
 import { ProjectScreen } from "./ProjectScreen";
 import { ProjectVisual } from "./ProjectVisual";
+import { ArchDiagram } from "./ArchDiagram";
+import { ApiTerminal } from "./ApiTerminal";
 
 export function CaseStudyBody({ project, next }: { project: Project; next: Project }) {
   const { study } = project;
@@ -50,7 +52,7 @@ export function CaseStudyBody({ project, next }: { project: Project; next: Proje
 
             <MaskedLines
               lines={[project.title]}
-              className="type-display text-[clamp(2.75rem,10vw,9rem)]"
+              className="type-display text-[clamp(2rem,4.5vw,3.75rem)]"
             />
 
             <p className="mt-10 max-w-3xl text-lg leading-relaxed text-paper-dim md:text-2xl">
@@ -105,6 +107,29 @@ export function CaseStudyBody({ project, next }: { project: Project; next: Proje
           </section>
         )}
 
+        {/* ---- Architecture ---- */}
+        {study.architecture && (
+          <section className="border-b border-ink-line px-6 py-24 md:px-10 md:py-32">
+            <div className="mx-auto max-w-[1400px]">
+              <Reveal>
+                <span className="type-label mb-4 block text-accent-bright">System Design</span>
+                <h2 className="type-display text-2xl md:text-4xl">Architecture</h2>
+              </Reveal>
+              <div className="mt-12 md:mt-16">
+                <ArchDiagram architecture={study.architecture} />
+              </div>
+              {study.architecture.note && (
+                <Reveal delay={0.15}>
+                  <p className="mt-8 max-w-2xl font-mono text-xs leading-relaxed tracking-wide text-paper-dim">
+                    <span className="text-accent-bright">— </span>
+                    {study.architecture.note}
+                  </p>
+                </Reveal>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* ---- Narrative ---- */}
         <section className="px-6 py-24 md:px-10 md:py-32">
           <div className="mx-auto max-w-[1400px]">
@@ -123,6 +148,26 @@ export function CaseStudyBody({ project, next }: { project: Project; next: Proje
             ))}
           </div>
         </section>
+
+        {/* ---- API demo ---- */}
+        {study.apiDemo && (
+          <section className="border-t border-ink-line bg-ink-soft/40 px-6 py-24 md:px-10 md:py-32">
+            <div className="mx-auto grid max-w-[1400px] gap-10 md:grid-cols-[minmax(0,20rem)_1fr] md:gap-16">
+              <Reveal>
+                <div>
+                  <span className="type-label mb-4 block text-accent-bright">In Practice</span>
+                  <h2 className="type-display text-2xl md:text-3xl">The API, Live</h2>
+                  <p className="mt-6 max-w-sm text-base leading-relaxed text-paper-dim">
+                    {study.apiDemo.note}
+                  </p>
+                </div>
+              </Reveal>
+              <Reveal delay={0.1}>
+                <ApiTerminal demo={study.apiDemo} />
+              </Reveal>
+            </div>
+          </section>
+        )}
 
         {/* ---- Stack + links ---- */}
         <section className="border-t border-ink-line px-6 py-16 md:px-10">
@@ -169,7 +214,7 @@ export function CaseStudyBody({ project, next }: { project: Project; next: Proje
             <div className="relative mx-auto max-w-[1400px]">
               <p className="type-label mb-6 text-paper-dim">Next Project</p>
               <div className="flex flex-wrap items-center justify-between gap-6">
-                <motion.h2 className="type-display text-[clamp(2.5rem,8vw,7rem)] transition-transform duration-500 group-hover:translate-x-3">
+                <motion.h2 className="type-display text-[clamp(2rem,4.5vw,3.75rem)] transition-transform duration-500 group-hover:translate-x-3">
                   {next.title}
                 </motion.h2>
                 <Magnetic strength={0.3}>

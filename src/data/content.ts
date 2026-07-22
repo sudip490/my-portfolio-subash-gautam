@@ -87,6 +87,44 @@ export const stack: StackItem[] = [
   { name: "MCP", icon: "modelcontextprotocol", label: "Protocol" },
 ];
 
+/* ---- System diagram (case-study "Architecture" section) ----
+   Tiers render as columns, left to right — clients in, data out.
+   Layout is computed by ArchDiagram; this is pure topology. */
+export type ArchNode = {
+  id: string;
+  label: string;
+  /* Smaller mono second line — protocol, cadence, or the point. */
+  sub?: string;
+  /* The part of the system this case study is about. Accent outline. */
+  accent?: boolean;
+  /* External system we talk to, not something we run. Dashed outline. */
+  ext?: boolean;
+};
+
+export type Architecture = {
+  tiers: { label: string; nodes: ArchNode[] }[];
+  /* from/to are node ids. Dashed = async / scheduled flows. */
+  edges: { from: string; to: string; label?: string; dashed?: boolean }[];
+  /* One-line caption under the diagram. */
+  note?: string;
+};
+
+/* ---- Animated terminal (case-study "API in action" section) ----
+   Values are illustrative — shaped like the real responses, not
+   captured from production systems. */
+export type ApiDemo = {
+  /* Terminal title-bar text. */
+  title: string;
+  /* The command typed into the prompt, one string per line. */
+  request: string[];
+  /* Response lines revealed after the request. hl = accent line. */
+  response: { text: string; hl?: boolean }[];
+  /* Trailing status line. err renders red — sometimes the deny IS the feature. */
+  status: { text: string; tone: "ok" | "err" };
+  /* Lede shown beside the terminal: why this call is the story. */
+  note: string;
+};
+
 export type CaseStudy = {
   /* Shown as the case-study lede. */
   overview: string;
@@ -101,6 +139,10 @@ export type CaseStudy = {
   outcomes?: { value: string; label: string }[];
   /* Optional live/repo links — omitted keys simply don't render. */
   links?: { label: string; href: string }[];
+  /* Optional system diagram — the section is skipped when absent. */
+  architecture?: Architecture;
+  /* Optional terminal demo — the section is skipped when absent. */
+  apiDemo?: ApiDemo;
 };
 
 export type Project = {
@@ -153,6 +195,69 @@ export const projects: Project[] = [
           body: "On top of the data sit the figures users open the app for: profit and loss, receivable amounts, and transaction summaries, computed in real time. These are derived rather than stored, which keeps them correct as prices move — and puts the whole burden on making the computation fast enough to feel instant.",
         },
       ],
+      architecture: {
+        tiers: [
+          {
+            label: "Channels",
+            nodes: [
+              { id: "imepay", label: "IME Pay" },
+              { id: "khalti", label: "Khalti" },
+              { id: "gib", label: "Global IME Bank" },
+            ],
+          },
+          {
+            label: "Edge",
+            nodes: [{ id: "api", label: "Capital Market API", sub: "one API, three apps" }],
+          },
+          {
+            label: "Services",
+            nodes: [
+              { id: "market", label: "Live Market Data", sub: "tick ingest" },
+              { id: "pnl", label: "P&L Engine", sub: "computed in real time", accent: true },
+              { id: "portfolio", label: "Portfolio Analytics", sub: "read-optimized" },
+            ],
+          },
+          {
+            label: "Data",
+            nodes: [
+              { id: "nepse", label: "NEPSE Feed", sub: "live ticks", ext: true },
+              { id: "pg", label: "PostgreSQL", sub: "holdings + txns" },
+            ],
+          },
+        ],
+        edges: [
+          { from: "imepay", to: "api" },
+          { from: "khalti", to: "api" },
+          { from: "gib", to: "api" },
+          { from: "api", to: "market" },
+          { from: "api", to: "pnl" },
+          { from: "api", to: "portfolio" },
+          { from: "market", to: "pnl" },
+          { from: "market", to: "nepse", label: "subscribes", dashed: true },
+          { from: "pnl", to: "pg" },
+          { from: "portfolio", to: "pg" },
+        ],
+        note: "Prices flow in once and fan out to three apps. Every P&L figure is derived against the live tick at read time — nothing is a stored snapshot that can go stale.",
+      },
+      apiDemo: {
+        title: "capital-market — portfolio summary",
+        request: [
+          "curl -s https://api.capital.internal/v1/portfolio/summary \\",
+          '  -H "Authorization: Bearer <channel-token>"',
+        ],
+        response: [
+          { text: "{" },
+          { text: '  "holdings": 34,' },
+          { text: '  "invested": "12,50,000.00",' },
+          { text: '  "market_value": "14,18,200.00",' },
+          { text: '  "pnl": "+1,68,200.00 (+13.45%)",', hl: true },
+          { text: '  "receivable": "25,400.00",' },
+          { text: '  "priced_at": "live tick, 2s ago"' },
+          { text: "}" },
+        ],
+        status: { text: "200 OK · computed on read, correct as the price moves", tone: "ok" },
+        note: "The numbers people open the app for — P&L, valuation, receivables — are derived at request time against the live NEPSE tick. Nothing in this response is a stored snapshot that can go stale.",
+      },
     },
   },
   {
@@ -190,6 +295,58 @@ export const projects: Project[] = [
         },
       ],
       links: [{ label: "Live Site", href: "https://brish.swifttech.com.np/" }],
+      architecture: {
+        tiers: [
+          { label: "Client", nodes: [{ id: "browser", label: "Trader's Browser" }] },
+          {
+            label: "Edge",
+            nodes: [
+              { id: "nginx", label: "Nginx", sub: "tls + proxy" },
+              { id: "next", label: "Next.js", sub: "terminal ui" },
+            ],
+          },
+          {
+            label: "Engine",
+            nodes: [
+              { id: "ingest", label: "Floorsheet Ingest", sub: "every trade, live" },
+              { id: "whale", label: "Whale Detector", sub: "block-trade radar", accent: true },
+              { id: "replay", label: "Replay Engine", sub: "vs NEPSE index" },
+            ],
+          },
+          {
+            label: "Source",
+            nodes: [{ id: "nepse", label: "NEPSE Floorsheet", sub: "public record", ext: true }],
+          },
+        ],
+        edges: [
+          { from: "browser", to: "nginx", label: "wss" },
+          { from: "nginx", to: "next" },
+          { from: "next", to: "ingest", label: "stream" },
+          { from: "next", to: "whale", label: "alerts" },
+          { from: "next", to: "replay" },
+          { from: "ingest", to: "whale" },
+          { from: "nepse", to: "ingest", label: "every tick", dashed: true },
+        ],
+        note: "The floorsheet arrives as a firehose. The pipeline reads every trade as it lands and turns it into alerts a trader can act on while the market is still open.",
+      },
+      apiDemo: {
+        title: "brish — block-trade radar",
+        request: ['curl -s "https://brish.swifttech.com.np/api/radar?window=5m"'],
+        response: [
+          { text: "[" },
+          { text: "  {" },
+          { text: '    "symbol": "NABIL",' },
+          { text: '    "side": "BUY",' },
+          { text: '    "qty": 50000,' },
+          { text: '    "value": 25600000,' },
+          { text: '    "flag": "BLOCK_TRADE",', hl: true },
+          { text: '    "source": "floorsheet, live"' },
+          { text: "  }" },
+          { text: "]" },
+        ],
+        status: { text: "200 OK · surfaced while the market is open, not after", tone: "ok" },
+        note: "Large trades show up in the floorsheet before they show up in the price. The radar surfaces them the moment they land — after the fact, the edge is gone.",
+      },
     },
   },
   {
@@ -223,6 +380,63 @@ export const projects: Project[] = [
           body: "Services are containerized with Docker and orchestrated on Kubernetes, so each one scales on its own axis — the transfer path and the statement path have very different load profiles, and neither should have to be provisioned for the other's peak.",
         },
       ],
+      architecture: {
+        tiers: [
+          {
+            label: "Channels",
+            nodes: [
+              { id: "web", label: "Web Banking" },
+              { id: "mobile", label: "Mobile Banking" },
+            ],
+          },
+          { label: "Edge", nodes: [{ id: "gw", label: "API Gateway", sub: "one contract" }] },
+          {
+            label: "Services",
+            nodes: [
+              { id: "auth", label: "Auth" },
+              { id: "accounts", label: "Accounts" },
+              { id: "transfers", label: "Transfers", sub: "the money path", accent: true },
+              { id: "statements", label: "Statements" },
+            ],
+          },
+          {
+            label: "Core",
+            nodes: [{ id: "cbs", label: "Core Banking", sub: "bank of record", ext: true }],
+          },
+        ],
+        edges: [
+          { from: "web", to: "gw" },
+          { from: "mobile", to: "gw" },
+          { from: "gw", to: "auth", label: "gRPC" },
+          { from: "gw", to: "accounts" },
+          { from: "gw", to: "transfers" },
+          { from: "gw", to: "statements" },
+          { from: "accounts", to: "cbs" },
+          { from: "transfers", to: "cbs" },
+        ],
+        note: "One backend, every channel. Web and mobile are views onto the same services — and each service scales on its own axis on Kubernetes, because the transfer path and the statement path never share a load profile.",
+      },
+      apiDemo: {
+        title: "grpcurl — funds transfer",
+        request: [
+          "grpcurl -d '{",
+          '    "from":   "0170010012345",',
+          '    "to":     "0170010067890",',
+          '    "amount": "25,000.00"',
+          "  }' smartplus.internal:443 \\",
+          "  transfers.v1.Transfers/Execute",
+        ],
+        response: [
+          { text: "{" },
+          { text: '  "status": "SETTLED",', hl: true },
+          { text: '  "txnId": "TXN-2022-084921",' },
+          { text: '  "channel": "MOBILE",' },
+          { text: '  "balance": "1,83,500.00"' },
+          { text: "}" },
+        ],
+        status: { text: "0 OK · one generated contract, every channel", tone: "ok" },
+        note: "A transfer over the platform's gRPC contract. Web and mobile call this exact service — the channel changes, the rules can't, because there's only one copy of them.",
+      },
     },
   },
   {
@@ -256,6 +470,64 @@ export const projects: Project[] = [
           body: "Access control is a first-class feature rather than a wrapper around the API. Corporate hierarchies — makers, checkers, approvers, limits per role — have to be modelled in the backend, because they're the product, not an implementation detail bolted on at the edge.",
         },
       ],
+      architecture: {
+        tiers: [
+          {
+            label: "Corporate",
+            nodes: [
+              { id: "maker", label: "Maker", sub: "raises payments" },
+              { id: "approver", label: "Approver", sub: "releases them" },
+            ],
+          },
+          { label: "Edge", nodes: [{ id: "gw", label: "Corporate Gateway" }] },
+          {
+            label: "Services",
+            nodes: [
+              { id: "bulk", label: "Bulk Payments", sub: "payroll-scale batches" },
+              { id: "access", label: "Access Control", sub: "maker–checker", accent: true },
+              { id: "transfers", label: "Fund Transfers" },
+            ],
+          },
+          {
+            label: "Data",
+            nodes: [
+              { id: "ledger", label: "Ledger" },
+              { id: "audit", label: "Audit Log", sub: "who signed off" },
+            ],
+          },
+        ],
+        edges: [
+          { from: "maker", to: "gw", label: "raise" },
+          { from: "approver", to: "gw", label: "release" },
+          { from: "gw", to: "access", label: "every call" },
+          { from: "access", to: "bulk" },
+          { from: "access", to: "transfers" },
+          { from: "bulk", to: "ledger" },
+          { from: "transfers", to: "ledger" },
+          { from: "bulk", to: "audit", label: "trail", dashed: true },
+        ],
+        note: "No payment reaches the ledger without passing access control, and no release happens on the credentials that raised it. The hierarchy lives in the backend — it is the product.",
+      },
+      apiDemo: {
+        title: "biznex — bulk payment batch",
+        request: [
+          "curl -s -X POST https://biznex.internal/v1/bulk/submit \\",
+          '  -H "X-Role: maker" --data-binary @payroll-july.csv',
+        ],
+        response: [
+          { text: "{" },
+          { text: '  "batch": "PAYROLL-2024-07",' },
+          { text: '  "items": 1240,' },
+          { text: '  "accepted": 1237,' },
+          { text: '  "failed": 3,' },
+          { text: '  "failures": "itemized, retryable",' },
+          { text: '  "state": "HELD_FOR_APPROVAL",', hl: true },
+          { text: '  "release_requires": "approver"' },
+          { text: "}" },
+        ],
+        status: { text: "202 Accepted · nothing moves until an approver signs", tone: "ok" },
+        note: "A payroll-sized batch raised by a maker: the three failures stay itemized and recoverable instead of poisoning the batch, and not one rupee moves until someone with release rights signs off.",
+      },
     },
   },
   {
@@ -288,6 +560,60 @@ export const projects: Project[] = [
           body: "Tasks, savings goals, and smart spending turn the account into something closer to a teaching tool than a wallet. Each is a small piece of product logic, and keeping them in their own services meant they could evolve without touching the core ledger path.",
         },
       ],
+      architecture: {
+        tiers: [
+          {
+            label: "Clients",
+            nodes: [
+              { id: "child", label: "Child App", sub: "spends" },
+              { id: "parent", label: "Parent App", sub: "sets the rules" },
+            ],
+          },
+          { label: "Edge", nodes: [{ id: "gw", label: "API Gateway", sub: "gRPC inside" }] },
+          {
+            label: "Services",
+            nodes: [
+              { id: "controls", label: "Parental Controls", sub: "enforced server-side", accent: true },
+              { id: "ledger", label: "Core Ledger", sub: "the money path" },
+              { id: "tasks", label: "Tasks & Savings", sub: "own services" },
+            ],
+          },
+          { label: "Data", nodes: [{ id: "db", label: "Ledger Store" }] },
+        ],
+        edges: [
+          { from: "child", to: "gw", label: "spend" },
+          { from: "parent", to: "gw", label: "limits" },
+          { from: "gw", to: "controls", label: "authorize" },
+          { from: "gw", to: "tasks" },
+          { from: "controls", to: "ledger" },
+          { from: "tasks", to: "ledger" },
+          { from: "ledger", to: "db" },
+        ],
+        note: "Two people with different permissions over the same money. The child spends, the parent sets the boundary, and the backend referees — neither client is trusted with the rules.",
+      },
+      apiDemo: {
+        title: "grpcurl — spend authorization",
+        request: [
+          "grpcurl -d '{",
+          '    "child":    "acct_7031",',
+          '    "merchant": "GameZone",',
+          '    "amount":   "1,500.00"',
+          "  }' junior.internal:443 \\",
+          "  junior.v1.SpendAuthz/Authorize",
+        ],
+        response: [
+          { text: "{" },
+          { text: '  "decision": "DENIED",', hl: true },
+          { text: '  "rule": "DAILY_LIMIT",' },
+          { text: '  "limit": "1,000.00",' },
+          { text: '  "spent_today": "850.00",' },
+          { text: '  "set_by": "parent",' },
+          { text: '  "enforced_at": "service boundary"' },
+          { text: "}" },
+        ],
+        status: { text: "7 PERMISSION_DENIED · the rule held, whatever the client sent", tone: "err" },
+        note: "A spend attempt past the parent's daily limit, denied at the service boundary. This deny is the feature: a limit that lived in the mobile app would be a suggestion.",
+      },
     },
   },
   {
@@ -320,6 +646,56 @@ export const projects: Project[] = [
           body: "Operating under a NEPSE licence means the platform's constraints are regulatory as well as technical. Secure user transactions aren't a feature you can defer to a later sprint — they're the condition of being allowed to run at all.",
         },
       ],
+      architecture: {
+        tiers: [
+          { label: "Client", nodes: [{ id: "web", label: "Trader Web" }] },
+          {
+            label: "Edge",
+            nodes: [
+              { id: "rest", label: "REST API" },
+              { id: "ws", label: "WebSocket Feed", sub: "pushed, not polled", accent: true },
+            ],
+          },
+          {
+            label: "Services",
+            nodes: [
+              { id: "trading", label: "Trading", sub: "order lifecycle" },
+              { id: "portfolio", label: "Portfolio Insights", sub: "derived on read" },
+            ],
+          },
+          {
+            label: "Data",
+            nodes: [
+              { id: "nepse", label: "NEPSE", sub: "live market", ext: true },
+              { id: "db", label: "Holdings DB" },
+            ],
+          },
+        ],
+        edges: [
+          { from: "web", to: "rest" },
+          { from: "web", to: "ws", label: "live ticks" },
+          { from: "rest", to: "trading" },
+          { from: "rest", to: "portfolio" },
+          { from: "trading", to: "nepse", label: "orders" },
+          { from: "nepse", to: "ws", label: "ticks", dashed: true },
+          { from: "portfolio", to: "db" },
+        ],
+        note: "A brokerage backend has one non-negotiable: the price on screen is the price at the exchange. Ticks are pushed the moment they land — a second of lag is a wrong number.",
+      },
+      apiDemo: {
+        title: "wscat — live market stream",
+        request: [
+          "wscat -c wss://api.sani.internal/stream \\",
+          "  -x '{\"subscribe\": [\"NIFRA\", \"NABIL\"]}'",
+        ],
+        response: [
+          { text: '< { "s": "NIFRA", "ltp": 312.50, "chg": "+1.8%" }' },
+          { text: '< { "s": "NABIL", "ltp": 512.00, "chg": "-0.4%" }' },
+          { text: '< { "s": "NIFRA", "ltp": 313.00, "chg": "+1.9%" }', hl: true },
+        ],
+        status: { text: "connected · ticks pushed as they happen, no polling", tone: "ok" },
+        note: "A WebSocket subscription to live NEPSE symbols. The server pushes every tick as it lands — the screen never waits on the next poll to learn the truth.",
+      },
     },
   },
   {
@@ -362,6 +738,54 @@ export const projects: Project[] = [
         { label: "Live Site", href: "https://goldsilver-brown.vercel.app/" },
         { label: "Source", href: "https://github.com/sudip490/goldsilver" },
       ],
+      architecture: {
+        tiers: [
+          { label: "Client", nodes: [{ id: "browser", label: "Browser", sub: "tola + 10g, NPR" }] },
+          {
+            label: "App",
+            nodes: [{ id: "next", label: "Next.js on Vercel", sub: "app + api routes" }],
+          },
+          {
+            label: "Services",
+            nodes: [
+              { id: "sync", label: "Price Sync", sub: "every 5 minutes", accent: true },
+              { id: "alerts", label: "Alert Engine" },
+            ],
+          },
+          {
+            label: "Sources",
+            nodes: [
+              { id: "gp", label: "GoldPrice.org", sub: "spot prices", ext: true },
+              { id: "nrb", label: "NRB", sub: "official fx rates", ext: true },
+            ],
+          },
+        ],
+        edges: [
+          { from: "browser", to: "next" },
+          { from: "next", to: "sync", label: "latest" },
+          { from: "next", to: "alerts" },
+          { from: "sync", to: "gp", label: "5m poll", dashed: true },
+          { from: "sync", to: "nrb", label: "official fx", dashed: true },
+        ],
+        note: "Spot prices convert against the exchange rate Nepal actually publishes — Nepal Rastra Bank's — instead of a market approximation, on the five-minute refresh the whole app honours.",
+      },
+      apiDemo: {
+        title: "gold & silver — nepal spot",
+        request: ['curl -s "https://goldsilver-brown.vercel.app/api/prices?market=np"'],
+        response: [
+          { text: "{" },
+          { text: '  "unit": "per tola, NPR",' },
+          { text: '  "gold": "1,98,500",', hl: true },
+          { text: '  "silver": "2,410",' },
+          { text: '  "high_24h": "1,99,100",' },
+          { text: '  "low_24h": "1,97,800",' },
+          { text: '  "fx_source": "Nepal Rastra Bank",' },
+          { text: '  "refreshed": "94s ago"' },
+          { text: "}" },
+        ],
+        status: { text: "200 OK · five-minute refresh, NRB official rates", tone: "ok" },
+        note: "The Nepal rate in the units people actually use — per tola, in rupees — with the 24-hour range and the official exchange rate doing the honest work underneath.",
+      },
     },
   },
   {
@@ -395,6 +819,50 @@ export const projects: Project[] = [
         },
       ],
       links: [{ label: "Source", href: "https://github.com/sudip490/k-cha-news" }],
+      architecture: {
+        tiers: [
+          {
+            label: "On Device",
+            nodes: [
+              { id: "app", label: "K Cha App", sub: "react native" },
+              { id: "query", label: "TanStack Query", sub: "request cache" },
+              { id: "storage", label: "AsyncStorage", sub: "survives launches", accent: true },
+            ],
+          },
+          {
+            label: "Network",
+            nodes: [{ id: "api", label: "K Cha Khabar API", sub: "5-min freshness", ext: true }],
+          },
+          {
+            label: "Sources",
+            nodes: [{ id: "rooms", label: "35+ Newsrooms", sub: "attributed", ext: true }],
+          },
+        ],
+        edges: [
+          { from: "app", to: "query" },
+          { from: "query", to: "storage" },
+          { from: "query", to: "api", label: "when online", dashed: true },
+          { from: "api", to: "rooms", label: "aggregates", dashed: true },
+        ],
+        note: "The interesting tier is the device. When the network goes away — and in Nepal it does — the cache is the app: stories stay readable, images persist, refresh tolerates silence.",
+      },
+      apiDemo: {
+        title: "k cha khabar — today's feed",
+        request: ['curl -s "https://api.kchakhabar.com/v1/today?lang=ne"'],
+        response: [
+          { text: "{" },
+          { text: '  "articles": [' },
+          { text: '    { "title": "आजका मुख्य समाचार…",' },
+          { text: '      "source": "Kantipur", "lang": "ne" },' },
+          { text: "    …" },
+          { text: "  ]," },
+          { text: '  "newsrooms": 37,', hl: true },
+          { text: '  "fresh_for": "300s"' },
+          { text: "}" },
+        ],
+        status: { text: "200 OK · honours the 5-minute freshness contract", tone: "ok" },
+        note: "One call aggregates 35+ newsrooms with attribution intact. The app respects the API's freshness contract instead of hammering it — and serves the cache when the network disappears.",
+      },
     },
   },
 ];
