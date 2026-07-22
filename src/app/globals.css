@@ -186,7 +186,7 @@
   }
   .animate-screen-fill {
     transform-origin: left;
-    animation: screen-fill 7s var(--ease-out-expo) infinite;
+    animation: screen-fill 4.5s var(--ease-out-expo) infinite;
   }
 
   /* Sparkline draw-in. Pair with pathLength={1} on the polyline. */
@@ -204,7 +204,7 @@
   }
   .animate-screen-draw {
     stroke-dasharray: 1;
-    animation: screen-draw 8s ease-in-out infinite;
+    animation: screen-draw 5s ease-in-out infinite;
   }
 
   /* The area fill under the sparkline, synced to screen-draw. */
@@ -222,7 +222,7 @@
     }
   }
   .animate-screen-fade {
-    animation: screen-fade 8s ease-in-out infinite;
+    animation: screen-fade 5s ease-in-out infinite;
   }
 
   /* Live indicators — steady heartbeat. */
@@ -236,7 +236,7 @@
     }
   }
   .animate-screen-pulse {
-    animation: screen-pulse 1.8s ease-in-out infinite;
+    animation: screen-pulse 1.4s ease-in-out infinite;
   }
 
   /* A value refreshing: one quick flicker per cycle. */
@@ -252,7 +252,7 @@
     }
   }
   .animate-screen-blink {
-    animation: screen-blink 4s linear infinite;
+    animation: screen-blink 2.5s linear infinite;
   }
 
   /* Floorsheet marquee: the row list is rendered twice, so -50% lands
@@ -266,7 +266,7 @@
     }
   }
   .animate-screen-rows {
-    animation: screen-rows 14s linear infinite;
+    animation: screen-rows 7s linear infinite;
   }
 
   /* Light band sweeping across a card. Parked off-canvas both ends. */
@@ -282,7 +282,7 @@
   }
   .animate-screen-sheen {
     left: -25%;
-    animation: screen-sheen 5.5s ease-in-out infinite;
+    animation: screen-sheen 4s ease-in-out infinite;
   }
 
   /* Gold & Silver's real full-page screenshot, shown through a fixed
@@ -303,62 +303,23 @@
     }
   }
   .animate-screen-pan {
-    animation: screen-pan 18s ease-in-out infinite;
+    animation: screen-pan 12s ease-in-out infinite;
   }
 
-  /* Global Junior's open task ticking itself off, then resetting.
-     Emerald literals are the mockups' diegetic UI colors, not tokens. */
-  @keyframes junior-tick {
-    0%,
-    45%,
-    100% {
-      border-color: var(--color-ink-line);
-      background-color: transparent;
+  /* One-shot entrance for content the tick just swapped in (a new
+     transaction, a re-languaged feed) — runs once per key change. */
+  @keyframes screen-appear {
+    from {
+      opacity: 0;
+      transform: translateY(3px);
     }
-    55%,
-    90% {
-      border-color: #34d399;
-      background-color: rgb(52 211 153 / 0.7);
+    to {
+      opacity: 1;
+      transform: none;
     }
   }
-  .animate-junior-tick {
-    animation: junior-tick 6s ease-in-out infinite;
-  }
-
-  /* K Cha's EN ⇄ ने toggle trading places. Rest state = EN active,
-     matching the static markup. */
-  @keyframes kcha-en {
-    0%,
-    42%,
-    100% {
-      background-color: var(--color-paper);
-      color: var(--color-ink);
-    }
-    52%,
-    90% {
-      background-color: transparent;
-      color: var(--color-paper-dim);
-    }
-  }
-  .animate-kcha-en {
-    animation: kcha-en 8s ease-in-out infinite;
-  }
-
-  @keyframes kcha-ne {
-    0%,
-    42%,
-    100% {
-      background-color: transparent;
-      color: var(--color-paper-dim);
-    }
-    52%,
-    90% {
-      background-color: var(--color-paper);
-      color: var(--color-ink);
-    }
-  }
-  .animate-kcha-ne {
-    animation: kcha-ne 8s ease-in-out infinite;
+  .animate-screen-appear {
+    animation: screen-appear 0.45s ease-out;
   }
 }
 
