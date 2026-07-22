@@ -9,7 +9,12 @@
    Everything is static markup — no state, no timers, no randomness — so
    the screens cost nothing to render and can never mismatch on hydration.
    They're decorative (the card copy already names the product), hence
-   aria-hidden at the root. */
+   aria-hidden at the root.
+
+   The screens DO move, but via CSS keyframes only (globals.css,
+   "Product-screen motion") — bars fill, the floorsheet scrolls, tasks
+   tick themselves — so the static-markup guarantees above still hold,
+   and prefers-reduced-motion switches all of it off at once. */
 
 import Image from "next/image";
 import type { ReactNode } from "react";
@@ -80,12 +85,19 @@ function Spark({ points, height = 44 }: { points: string; height?: number }) {
     <svg viewBox={`0 0 200 ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
       <polyline
         points={points}
+        pathLength={1}
+        className="animate-screen-draw"
         fill="none"
         stroke="var(--color-accent-bright)"
         strokeWidth="1.5"
         strokeOpacity="0.9"
       />
-      <polygon points={`${points} 200,${height} 0,${height}`} fill="var(--color-accent)" fillOpacity="0.12" />
+      <polygon
+        points={`${points} 200,${height} 0,${height}`}
+        className="animate-screen-fade"
+        fill="var(--color-accent)"
+        fillOpacity="0.12"
+      />
     </svg>
   );
 }
@@ -111,7 +123,9 @@ function CapitalMarketScreen() {
         </div>
         <p className="font-mono text-[9px] tracking-wider text-paper-dim uppercase">Total value</p>
         <p className="mt-1 text-[22px] font-bold text-paper">NPR 12,45,680</p>
-        <p className={`mt-0.5 font-mono text-[10px] ${up}`}>+18,240 today · +1.49%</p>
+        <p className={`animate-screen-blink mt-0.5 font-mono text-[10px] ${up}`}>
+          +18,240 today · +1.49%
+        </p>
         <div className="mt-3 mb-4">
           <Spark points="0,38 25,33 50,35 75,28 100,30 125,22 150,24 175,14 200,10" />
         </div>
@@ -147,7 +161,7 @@ function BrishScreen() {
       <div className="px-4 py-3">
         <div className="mb-2 flex items-center justify-between">
           <span className="flex items-center gap-2 font-mono text-[10px] font-bold tracking-wider text-paper uppercase">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="animate-screen-pulse h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Floorsheet — Live
           </span>
           <Chip tone="accent">Whale radar on</Chip>
@@ -160,21 +174,28 @@ function BrishScreen() {
           <span className="text-right">Rate</span>
           <span />
         </div>
-        {rows.map((r) => (
-          <div
-            key={r.sym + r.qty}
-            className={`grid grid-cols-[1.2fr_0.7fr_0.7fr_1fr_1fr_auto] items-center gap-x-3 border-b border-ink-line/60 py-1.5 font-mono text-[10px] ${
-              r.whale ? "bg-accent/10" : ""
-            }`}
-          >
-            <span className="font-bold text-paper">{r.sym}</span>
-            <span className="text-paper-dim">{r.b}</span>
-            <span className="text-paper-dim">{r.s}</span>
-            <span className="text-right text-paper">{r.qty}</span>
-            <span className="text-right text-paper">{r.rate}</span>
-            <span>{r.whale ? <Chip tone="accent">Whale</Chip> : null}</span>
+        {/* The floorsheet actually flows: the row list rendered twice
+            inside a clipped viewport, marquee'd by -50% for a seamless
+            loop — the closest a mockup gets to "every trade, live". */}
+        <div className="relative h-[170px] overflow-hidden">
+          <div className="animate-screen-rows">
+            {[...rows, ...rows].map((r, i) => (
+              <div
+                key={r.sym + i}
+                className={`grid grid-cols-[1.2fr_0.7fr_0.7fr_1fr_1fr_auto] items-center gap-x-3 border-b border-ink-line/60 py-1.5 font-mono text-[10px] ${
+                  r.whale ? "bg-accent/10" : ""
+                }`}
+              >
+                <span className="font-bold text-paper">{r.sym}</span>
+                <span className="text-paper-dim">{r.b}</span>
+                <span className="text-paper-dim">{r.s}</span>
+                <span className="text-right text-paper">{r.qty}</span>
+                <span className="text-right text-paper">{r.rate}</span>
+                <span>{r.whale ? <Chip tone="accent">Whale</Chip> : null}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
         <p className="mt-2 truncate font-mono text-[9px] text-paper-dim">
           <span className="text-accent-bright">BLOCK RADAR</span> · NIFRA 3.2L kitta @ 312 · UPPER
           1.2L @ 188 · portfolio vs NEPSE +4.2%
@@ -195,7 +216,8 @@ function SmartPlusScreen() {
     <PhoneFrame>
       <div className="px-5 pt-3 pb-5">
         <p className="text-[13px] font-bold text-paper">Good morning, Subash</p>
-        <div className="mt-3 rounded-md border border-accent/40 bg-accent/15 p-4">
+        <div className="relative mt-3 overflow-hidden rounded-md border border-accent/40 bg-accent/15 p-4">
+          <span className="animate-screen-sheen pointer-events-none absolute inset-y-0 w-16 bg-gradient-to-r from-transparent via-paper/10 to-transparent" />
           <p className="font-mono text-[9px] tracking-wider text-paper-dim uppercase">
             Savings · 001·····212
           </p>
@@ -244,7 +266,7 @@ function BiznexScreen() {
             <span className="font-mono text-[9px] text-paper-dim">936 / 1,204 validated</span>
           </div>
           <div className="h-1 w-full bg-ink-line">
-            <div className="h-1 w-[78%] bg-accent-bright" />
+            <div className="animate-screen-fill h-1 w-[78%] bg-accent-bright" />
           </div>
         </div>
         <div className="grid grid-cols-[0.8fr_1.6fr_1fr_auto] gap-x-3 border-b border-ink-line pb-1.5 font-mono text-[8px] tracking-wider text-paper-dim uppercase">
@@ -261,7 +283,13 @@ function BiznexScreen() {
             <span className="text-paper-dim">{q.ref}</span>
             <span className="truncate text-paper">{q.ben}</span>
             <span className="text-right text-paper">{q.amt}</span>
-            <Chip tone={q.tone}>{q.status}</Chip>
+            {q.tone === "amber" ? (
+              <span className="animate-screen-pulse inline-block">
+                <Chip tone={q.tone}>{q.status}</Chip>
+              </span>
+            ) : (
+              <Chip tone={q.tone}>{q.status}</Chip>
+            )}
           </div>
         ))}
       </div>
@@ -294,7 +322,7 @@ function JuniorScreen() {
             NPR 6,400 <span className="text-[11px] font-normal text-paper-dim">/ 10,000</span>
           </p>
           <div className="mt-2 h-1 w-full bg-ink-line">
-            <div className="h-1 w-[64%] bg-accent-bright" />
+            <div className="animate-screen-fill h-1 w-[64%] bg-accent-bright" />
           </div>
         </div>
         <p className="mt-4 mb-1 font-mono text-[9px] tracking-wider text-paper-dim uppercase">
@@ -305,7 +333,9 @@ function JuniorScreen() {
             <span className="flex items-center gap-2.5 text-[11px] text-paper">
               <span
                 className={`inline-block h-3 w-3 border ${
-                  t.done ? "border-emerald-400 bg-emerald-400/70" : "border-ink-line"
+                  t.done
+                    ? "border-emerald-400 bg-emerald-400/70"
+                    : "animate-junior-tick border-ink-line"
                 }`}
               />
               {t.t}
@@ -360,7 +390,7 @@ function SaniScreen() {
             <span className="font-mono text-[10px] font-bold tracking-wider text-paper uppercase">
               Depth — NABIL
             </span>
-            <span className={`font-mono text-[9px] ${up}`}>LTP 498.50</span>
+            <span className={`animate-screen-blink font-mono text-[9px] ${up}`}>LTP 498.50</span>
           </div>
           <div className="grid grid-cols-4 gap-x-2 border-b border-ink-line pb-1 font-mono text-[8px] tracking-wider text-paper-dim uppercase">
             <span className="text-right">Bid qty</span>
@@ -415,8 +445,8 @@ function KChaScreen() {
         <div className="mb-3 flex items-center justify-between">
           <span className="text-[14px] font-bold text-paper">के छ?</span>
           <span className="flex border border-ink-line font-mono text-[9px]">
-            <span className="bg-paper px-2 py-1 font-bold text-ink">EN</span>
-            <span className="px-2 py-1 text-paper-dim">ने</span>
+            <span className="animate-kcha-en bg-paper px-2 py-1 font-bold text-ink">EN</span>
+            <span className="animate-kcha-ne px-2 py-1 text-paper-dim">ने</span>
           </span>
         </div>
         <div className="mb-3 flex gap-1.5">
