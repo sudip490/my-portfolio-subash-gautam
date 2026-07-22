@@ -85,7 +85,7 @@ export function Contact() {
 
         <MaskedHeading
           lines={["Let's Work", <StrokeFill key="together" text="Together" />]}
-          className="type-display mb-10 text-[clamp(2.5rem,9vw,8rem)]"
+          className="type-display mb-10 text-[clamp(2.25rem,6vw,5rem)]"
         />
 
         {/* Pitch and email on the left, the places I already live on the

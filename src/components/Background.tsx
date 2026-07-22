@@ -27,7 +27,7 @@ export function Background() {
             </Reveal>
             <MaskedHeading
               lines={["Off The Clock"]}
-              className="type-display text-[clamp(2.5rem,7vw,6rem)]"
+              className="type-display text-[clamp(2rem,4.5vw,3.75rem)]"
             />
           </div>
           <DrawnRule />

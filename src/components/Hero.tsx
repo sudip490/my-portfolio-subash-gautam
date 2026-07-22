@@ -89,7 +89,7 @@ export function Hero({ ready = true }: { ready?: boolean }) {
           lines={hero.headline}
           /* Down from 11.5vw: the headline shares the row with the wheel
              now, so it sizes against its own column rather than the page. */
-          className="type-display text-[clamp(2.25rem,6.5vw,6rem)]"
+          className="type-display text-[clamp(2.25rem,5.5vw,5rem)]"
           lineClassName="[&:nth-child(2)]:text-accent-bright"
         />
 
