@@ -13,6 +13,7 @@ import { projects, type Project } from "@/data/content";
 import { DrawnRule, MaskedHeading, Reveal } from "./motion-primitives";
 import { ProjectVisual } from "./ProjectVisual";
 import { ProjectScreen } from "./ProjectScreen";
+import { MotionBackdrop } from "./MotionBackdrop";
 
 /* Screen placement inside the media area, by card shape × device. Phones
    hang centred and crop at the bottom edge; browsers pin near the top
@@ -110,7 +111,8 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           y: my,
           width: SPOT,
           height: SPOT,
-          background: "rgba(37,99,235,0.30)",
+          /* Token, not a literal — the spotlight has to follow the theme. */
+          background: "color-mix(in srgb, var(--color-accent) 30%, transparent)",
         }}
       />
 
@@ -124,7 +126,11 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               : "aspect-[16/10]"
           }`}
         >
-          <ProjectVisual category={project.category} slug={project.slug} />
+          {project.motion ? (
+            <MotionBackdrop src={project.motion} />
+          ) : (
+            <ProjectVisual category={project.category} slug={project.slug} />
+          )}
           <ProjectScreen
             slug={project.slug}
             className={

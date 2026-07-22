@@ -14,6 +14,7 @@ import { ProjectScreen } from "./ProjectScreen";
 import { ProjectVisual } from "./ProjectVisual";
 import { ArchDiagram } from "./ArchDiagram";
 import { ApiTerminal } from "./ApiTerminal";
+import { MotionBackdrop } from "./MotionBackdrop";
 
 export function CaseStudyBody({ project, next }: { project: Project; next: Project }) {
   const { study } = project;
@@ -75,7 +76,11 @@ export function CaseStudyBody({ project, next }: { project: Project; next: Proje
             {/* The product itself — same screen the card shows, full size. */}
             <Reveal delay={0.1}>
               <div className="group relative mt-16 overflow-hidden border border-ink-line bg-ink-soft/60">
-                <ProjectVisual category={project.category} slug={project.slug} />
+                {project.motion ? (
+                  <MotionBackdrop src={project.motion} />
+                ) : (
+                  <ProjectVisual category={project.category} slug={project.slug} />
+                )}
                 <ProjectScreen
                   slug={project.slug}
                   className={
