@@ -21,6 +21,48 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ---------------------------------------------------------------
+   Theme variants
+   data-theme on <html> (set by ThemeSwitcher, re-applied before
+   paint by the inline script in layout.tsx) re-points the same
+   tokens every utility already reads — no component knows themes
+   exist. Each ink trio tints toward the accent's hue so the
+   background isn't always the same black.
+   Cobalt (the default) is the @theme block above; it needs no
+   override here.
+   --------------------------------------------------------------- */
+:root[data-theme="emerald"] {
+  --color-ink: #060a08;
+  --color-ink-soft: #0d1411;
+  --color-ink-line: #223028;
+  --color-accent: #059669;
+  --color-accent-bright: #34d399;
+}
+
+:root[data-theme="violet"] {
+  --color-ink: #090714;
+  --color-ink-soft: #110e1d;
+  --color-ink-line: #292339;
+  --color-accent: #7c3aed;
+  --color-accent-bright: #a78bfa;
+}
+
+:root[data-theme="amber"] {
+  --color-ink: #0b0805;
+  --color-ink-soft: #14100a;
+  --color-ink-line: #302819;
+  --color-accent: #d97706;
+  --color-accent-bright: #fbbf24;
+}
+
+:root[data-theme="rose"] {
+  --color-ink: #0c0609;
+  --color-ink-soft: #150c10;
+  --color-ink-line: #33222a;
+  --color-accent: #e11d48;
+  --color-accent-bright: #fb7185;
+}
+
 @layer base {
   html {
     /* Deliberately NO `scroll-behavior: smooth` here. Lenis drives

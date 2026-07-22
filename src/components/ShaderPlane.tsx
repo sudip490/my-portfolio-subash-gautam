@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -10,6 +10,7 @@ const FRAGMENT = /* glsl */ `
   uniform float uTime;
   uniform vec2  uPointer;
   uniform vec2  uResolution;
+  uniform vec3  uAccent;
   varying vec2  vUv;
 
   // Hash-based value noise — cheap, no texture lookup.
@@ -52,9 +53,13 @@ const FRAGMENT = /* glsl */ `
                   fbm(p + 4.0 * q + vec2(8.3, 2.8) - t * 1.1));
     float f = fbm(p + 4.0 * r);
 
+    /* Accent arrives from the live --color-accent token so the field
+       recolors with the theme. deep is derived rather than authored:
+       ink pushed ~16% toward the accent, which is what the old
+       hand-picked navy was for the cobalt accent. */
     vec3 ink    = vec3(0.031, 0.031, 0.039);
-    vec3 deep   = vec3(0.055, 0.075, 0.180);
-    vec3 accent = vec3(0.145, 0.388, 0.922);
+    vec3 deep   = mix(ink, uAccent, 0.16);
+    vec3 accent = uAccent;
 
     /* Intensities are deliberately low. This field was authored while the
        quad was rendering as a ~245px square, where 65% accent read as one
@@ -103,9 +108,35 @@ function Plane() {
       uTime: { value: 0 },
       uPointer: { value: new THREE.Vector2(0.5, 0.5) },
       uResolution: { value: new THREE.Vector2(1, 1) },
+      uAccent: { value: new THREE.Vector3(0.145, 0.388, 0.922) },
     }),
     []
   );
+
+  /* Feed --color-accent into the shader, and again whenever the theme
+     switcher restamps data-theme on <html>. */
+  useEffect(() => {
+    const readAccent = () => {
+      const hex = getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-accent")
+        .trim();
+      const m = /^#([0-9a-f]{6})$/i.exec(hex);
+      if (!m || !mat.current) return;
+      const n = parseInt(m[1], 16);
+      mat.current.uniforms.uAccent.value.set(
+        ((n >> 16) & 255) / 255,
+        ((n >> 8) & 255) / 255,
+        (n & 255) / 255
+      );
+    };
+    readAccent();
+    const observer = new MutationObserver(readAccent);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   useFrame((state, delta) => {
     const m = mat.current;

@@ -3,6 +3,7 @@ import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { site, skills } from "@/data/content";
 import { siteUrl } from "@/lib/site-url";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -76,12 +77,23 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full`}
+      /* data-theme is stamped pre-hydration by the script below, so the
+         server's version of this attribute is allowed to differ. */
+      suppressHydrationWarning
     >
       <body className="min-h-full">
+        {/* Re-apply the saved theme before anything paints — without this,
+            themed visitors get a cobalt flash on every navigation. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}`,
+          }}
+        />
         <a href="#main" className="skip-link type-label bg-paper px-5 py-4 text-ink">
           Skip to content
         </a>
         {children}
+        <ThemeSwitcher />
         <PersonJsonLd />
       </body>
     </html>
