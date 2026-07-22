@@ -21,6 +21,7 @@
 import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 import { useReducedMotion } from "motion/react";
+import { useLive } from "@/lib/use-live";
 import goldSilverShot from "../../public/work/gold-silver.jpg";
 
 /* ---------------------------------------------------------------- */
@@ -143,14 +144,19 @@ function Spark({ points, height = 44 }: { points: string; height?: number }) {
    together, derived — never stored. */
 function CapitalMarketScreen() {
   const t = useTick(2000);
+  const live = useLive();
 
   const value = 1245680 + Math.round(wave(t, 26000, 0.6) + wave(t, 7000, 1.9)) + t * 120;
   const today = value - 1245680 + 18240;
   const todayPct = (today / (value - today)) * 100;
 
-  const nepse = 2146.32 + wave(t, 6.5, 0.9) + wave(t, 1.8, 2.6);
-  const prevNepse = 2146.32 + wave(t - 1, 6.5, 0.9) + wave(t - 1, 1.8, 2.6);
-  const nepseUp = nepse >= prevNepse;
+  /* The index chip is REAL when /api/live delivers: the actual NEPSE
+     point and its actual direction. The mock oscillator only stands in
+     while (or if) the fetch hasn't landed. */
+  const nepse = live?.nepse ? live.nepse.value : 2146.32 + wave(t, 6.5, 0.9) + wave(t, 1.8, 2.6);
+  const nepseUp = live?.nepse
+    ? live.nepse.change >= 0
+    : nepse >= 2146.32 + wave(t - 1, 6.5, 0.9) + wave(t - 1, 1.8, 2.6);
 
   const holdings = [
     { s: "NABIL", q: "512 kitta", ltp: 498.5, chg: 1.24 },
@@ -173,7 +179,7 @@ function CapitalMarketScreen() {
         <div className="mb-4 flex items-center justify-between">
           <span className="text-[13px] font-bold text-paper">Portfolio</span>
           <Chip tone="accent">
-            NEPSE {nepse.toFixed(2)} {nepseUp ? "▲" : "▼"}
+            NEPSE {npr(nepse, 2)} {nepseUp ? "▲" : "▼"}
           </Chip>
         </div>
         <p className="font-mono text-[9px] tracking-wider text-paper-dim uppercase">Total value</p>
@@ -579,11 +585,12 @@ function SaniScreen() {
   );
 }
 
-/* Gold & Silver — live and public, so the real thing: the full-page
-   capture slowly pans inside a fixed viewport, like someone scrolling
-   the site. (Truly live prices would need the app's API to allow
-   cross-origin reads — a follow-up, not a mockup concern.) */
+/* Gold & Silver — live and public, so the real thing twice over: the
+   full-page capture slowly pans inside a fixed viewport, and the strip
+   above it shows ACTUAL prices — international spot converted at Nepal
+   Rastra Bank's official rate, served by /api/live on a 5-minute cache. */
 function GoldSilverScreen() {
+  const live = useLive();
   return (
     <div className="w-full overflow-hidden rounded-md border border-ink-line bg-ink shadow-[0_24px_80px_-24px_rgba(0,0,0,0.85)]">
       <div className="flex items-center gap-3 border-b border-ink-line bg-ink-soft px-4 py-2.5">
@@ -596,6 +603,24 @@ function GoldSilverScreen() {
           goldsilver-brown.vercel.app
         </span>
       </div>
+      {live?.gold && (
+        <div className="flex items-center justify-between gap-3 border-b border-ink-line bg-ink-soft/60 px-4 py-2 font-mono text-[9px]">
+          <span className="flex items-center gap-2 truncate text-paper">
+            <span className="animate-screen-pulse h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+            GOLD {npr(live.gold)}
+            <span className="text-paper-dim">/tola</span>
+            {live.silver && (
+              <>
+                · SILVER {npr(live.silver)}
+                <span className="text-paper-dim">/tola</span>
+              </>
+            )}
+          </span>
+          <span className="shrink-0 text-paper-dim">
+            live spot × NRB{live.usdNpr ? ` ${live.usdNpr.toFixed(2)}` : ""}
+          </span>
+        </div>
+      )}
       {/* Fixed viewport (sync with screen-pan's 16rem) so the tall
           capture doesn't swallow the whole card and hide the backdrop. */}
       <div className="h-64 overflow-hidden">
