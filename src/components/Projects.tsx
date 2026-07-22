@@ -66,6 +66,21 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   const rx = useSpring(0, { stiffness: 120, damping: 16, mass: 0.6 });
   const ry = useSpring(0, { stiffness: 120, damping: 16, mass: 0.6 });
 
+  /* Media-panel shape. The device mockups are tall (a phone runs ~420px),
+     but a 16/10 panel on a narrow phone-width card is only ~215px, which
+     cropped the mockup in half — hiding the very animations lower down
+     (balances, transactions, tasks). Phones get a fixed height that fits
+     the whole mockup until md, where featured phones move to the tall
+     side column; browsers get a taller mobile ratio for the same reason. */
+  const isPhone = project.device === "phone";
+  const mediaShape = project.featured
+    ? isPhone
+      ? "h-[460px] md:h-auto md:order-2 md:aspect-auto md:border-b-0 md:border-l"
+      : "aspect-[4/3] sm:aspect-[16/8] md:order-2 md:aspect-auto md:border-b-0 md:border-l"
+    : isPhone
+      ? "h-[460px]"
+      : "aspect-[4/3] sm:aspect-[16/10]";
+
   return (
     <motion.article
       ref={ref}
@@ -120,11 +135,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           featured cards it becomes the right column instead. */}
       <div className={project.featured ? "flex-1 md:grid md:grid-cols-2" : "flex flex-1 flex-col"}>
         <div
-          className={`relative overflow-hidden border-b border-ink-line bg-ink ${
-            project.featured
-              ? "aspect-[16/10] sm:aspect-[16/8] md:order-2 md:aspect-auto md:border-b-0 md:border-l"
-              : "aspect-[16/10]"
-          }`}
+          className={`relative overflow-hidden border-b border-ink-line bg-ink ${mediaShape}`}
         >
           {project.motion ? (
             <MotionBackdrop src={project.motion} />
