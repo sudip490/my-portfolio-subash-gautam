@@ -95,6 +95,13 @@ export default function RootLayout({
         {children}
         <ThemeSwitcher />
         <PersonJsonLd />
+        {/* Vercel Web Analytics. This is the same script @vercel/analytics
+            injects, loaded from our own origin — taking it directly avoids
+            adding a dependency, which can't be done here without also
+            regenerating package-lock.json and breaking `npm ci`. Swap in
+            <Analytics /> from @vercel/analytics/next after installing it,
+            if you'd rather have the package. */}
+        <script defer src="/_vercel/insights/script.js" />
       </body>
     </html>
   );
